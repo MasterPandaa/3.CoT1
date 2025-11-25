@@ -1,6 +1,7 @@
-import sys
 import math
 import random
+import sys
+
 import pygame
 from pygame import Rect
 
@@ -77,7 +78,9 @@ HEIGHT = (MAZE_ROWS + 2) * TILE_SIZE
 
 
 def grid_to_pixel(col, row):
-    return int(col * TILE_SIZE + TILE_SIZE / 2), int((row + 2) * TILE_SIZE + TILE_SIZE / 2)
+    return int(col * TILE_SIZE + TILE_SIZE / 2), int(
+        (row + 2) * TILE_SIZE + TILE_SIZE / 2
+    )
 
 
 def pixel_to_grid(x, y):
@@ -103,15 +106,15 @@ class Maze:
         # Parse layout
         for r, line in enumerate(layout):
             for c, ch in enumerate(line):
-                if ch == '#':
+                if ch == "#":
                     self.walls[r][c] = True
-                elif ch == '.':
+                elif ch == ".":
                     self.pellets.add((c, r))
-                elif ch == 'o':
+                elif ch == "o":
                     self.power_pellets.add((c, r))
-                elif ch == 'P':
+                elif ch == "P":
                     self.pacman_start = (c, r)
-                elif ch == 'G':
+                elif ch == "G":
                     self.ghost_starts.append((c, r))
         # Precompute wall rects for drawing
         self.wall_rects = []
@@ -136,10 +139,10 @@ class Maze:
         for rect in self.wall_rects:
             pygame.draw.rect(surface, BLUE, rect, border_radius=6)
         # Draw pellets
-        for (c, r) in self.pellets:
+        for c, r in self.pellets:
             x, y = grid_to_pixel(c, r)
             pygame.draw.circle(surface, WHITE, (x, y), 3)
-        for (c, r) in self.power_pellets:
+        for c, r in self.power_pellets:
             x, y = grid_to_pixel(c, r)
             pygame.draw.circle(surface, WHITE, (x, y), 6, width=2)
 
@@ -175,7 +178,9 @@ class Pacman:
 
     def update(self, dt):
         # Try to turn if possible
-        if self.next_dir != self.dir and self.can_move((self.next_dir[0] * self.speed, self.next_dir[1] * self.speed)):
+        if self.next_dir != self.dir and self.can_move(
+            (self.next_dir[0] * self.speed, self.next_dir[1] * self.speed)
+        ):
             self.dir = self.next_dir
         # Move if possible
         move_vec = (self.dir[0] * self.speed, self.dir[1] * self.speed)
@@ -198,10 +203,10 @@ class Pacman:
         ate = None
         if (c, r) in self.maze.pellets:
             self.maze.pellets.remove((c, r))
-            ate = 'pellet'
+            ate = "pellet"
         elif (c, r) in self.maze.power_pellets:
             self.maze.power_pellets.remove((c, r))
-            ate = 'power'
+            ate = "power"
             self.power_timer = POWER_DURATION
         # Power timer
         if self.power_timer > 0:
@@ -241,8 +246,14 @@ class Pacman:
         # Draw mouth by overlaying background triangle
         mouth_radius = self.radius
         p1 = center
-        p2 = (int(self.x + mouth_radius * math.cos(start_angle)), int(self.y - mouth_radius * math.sin(start_angle)))
-        p3 = (int(self.x + mouth_radius * math.cos(end_angle)), int(self.y - mouth_radius * math.sin(end_angle)))
+        p2 = (
+            int(self.x + mouth_radius * math.cos(start_angle)),
+            int(self.y - mouth_radius * math.sin(start_angle)),
+        )
+        p3 = (
+            int(self.x + mouth_radius * math.cos(end_angle)),
+            int(self.y - mouth_radius * math.sin(end_angle)),
+        )
         pygame.draw.polygon(surface, NAVY, [p1, p2, p3])
 
 
@@ -292,13 +303,17 @@ class Ghost:
         for d in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
             if d == opposite(self.dir):
                 continue  # avoid immediate reversal
-            c, r = pixel_to_grid(self.x + d[0] * TILE_SIZE * 0.6, self.y + d[1] * TILE_SIZE * 0.6)
+            c, r = pixel_to_grid(
+                self.x + d[0] * TILE_SIZE * 0.6, self.y + d[1] * TILE_SIZE * 0.6
+            )
             if not self.maze.is_wall(c, r):
                 candidates.append(d)
         if not candidates:
             # If stuck, allow reversal
             for d in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
-                c, r = pixel_to_grid(self.x + d[0] * TILE_SIZE * 0.6, self.y + d[1] * TILE_SIZE * 0.6)
+                c, r = pixel_to_grid(
+                    self.x + d[0] * TILE_SIZE * 0.6, self.y + d[1] * TILE_SIZE * 0.6
+                )
                 if not self.maze.is_wall(c, r):
                     candidates.append(d)
         return candidates
@@ -315,8 +330,15 @@ class Ghost:
         center = (int(self.x), int(self.y))
         color = GREY if self.dead else (WHITE if self.frightened else self.color)
         body_radius = TILE_SIZE // 2 - 2
-        pygame.draw.circle(surface, color, (center[0], center[1] - body_radius // 2), body_radius)
-        rect = Rect(center[0] - body_radius, center[1] - body_radius // 2, body_radius * 2, body_radius)
+        pygame.draw.circle(
+            surface, color, (center[0], center[1] - body_radius // 2), body_radius
+        )
+        rect = Rect(
+            center[0] - body_radius,
+            center[1] - body_radius // 2,
+            body_radius * 2,
+            body_radius,
+        )
         pygame.draw.rect(surface, color, rect, border_radius=8)
         # eyes
         eye_color = NAVY if self.frightened else WHITE
@@ -336,14 +358,20 @@ class Game:
         self.maze = Maze(MAZE_MAP)
         self.pacman = Pacman(self.maze)
         if self.maze.ghost_starts:
-            self.ghosts = [Ghost(self.maze, i, start) for i, start in enumerate(self.maze.ghost_starts)]
+            self.ghosts = [
+                Ghost(self.maze, i, start)
+                for i, start in enumerate(self.maze.ghost_starts)
+            ]
         else:
             # Fallback: spawn 4 ghosts near center
-            self.ghosts = [Ghost(self.maze, i, (self.maze.cols // 2 + i - 2, self.maze.rows // 2)) for i in range(4)]
+            self.ghosts = [
+                Ghost(self.maze, i, (self.maze.cols // 2 + i - 2, self.maze.rows // 2))
+                for i in range(4)
+            ]
 
         self.score = 0
         self.lives = LIVES_START
-        self.state = 'playing'  # 'playing', 'gameover'
+        self.state = "playing"  # 'playing', 'gameover'
         self._reset_round()
 
     def _reset_round(self):
@@ -360,7 +388,10 @@ class Game:
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit(0)
-                if self.state == 'gameover' and event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                if self.state == "gameover" and event.key in (
+                    pygame.K_RETURN,
+                    pygame.K_SPACE,
+                ):
                     # restart
                     self.__init__()
                 # Control Pacman
@@ -374,12 +405,12 @@ class Game:
                     self.pacman.set_next_dir((0, 1))
 
     def update(self, dt):
-        if self.state != 'playing':
+        if self.state != "playing":
             return
         ate = self.pacman.update(dt)
-        if ate == 'pellet':
+        if ate == "pellet":
             self.score += PELLET_SCORE
-        elif ate == 'power':
+        elif ate == "power":
             self.score += POWER_SCORE
             for g in self.ghosts:
                 g.set_frightened(True)
@@ -407,7 +438,7 @@ class Game:
                     # Pacman dies
                     self.lives -= 1
                     if self.lives <= 0:
-                        self.state = 'gameover'
+                        self.state = "gameover"
                     self._reset_round()
                     break
         # Win condition: all pellets eaten
@@ -435,7 +466,7 @@ class Game:
         lives_surf = self.font.render(f"Lives: {self.lives}", True, WHITE)
         self.screen.blit(score_surf, (10, 8))
         self.screen.blit(lives_surf, (WIDTH - 120, 8))
-        if self.state == 'gameover':
+        if self.state == "gameover":
             msg = self.big_font.render("GAME OVER - Press Enter", True, YELLOW)
             rect = msg.get_rect(center=(WIDTH // 2, TILE_SIZE))
             self.screen.blit(msg, rect)
